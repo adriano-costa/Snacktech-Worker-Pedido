@@ -9,7 +9,7 @@ using Amazon;
 var builder = Host.CreateApplicationBuilder(args);
 
 // Load configuration
-var config = AppSettingsConfig.LoadConfiguration();
+var config = AppSettingsConfig.LoadConfiguration(builder.Configuration);
 
 // Register configuration as a service
 builder.Services.AddSingleton(config);

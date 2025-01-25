@@ -6,25 +6,14 @@ public class AppSettingsConfig
 
     private AppSettingsConfig(){}
 
-    public static AppSettingsConfig LoadConfiguration()
+    public static AppSettingsConfig LoadConfiguration(IConfigurationBuilder builder)
     {
-        var builder = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: false)
-            .AddJsonFile("appsettings.Development.json", optional: true);
-
         var configuration = builder.Build();
-
-        if (configuration == null)
-        {
-            throw new InvalidOperationException(
-                "Failed to load configuration. Please ensure the appsettings.json file exists and contains valid WorkerService settings.");
-        }
 
 #pragma warning disable CS8601 // Possible null reference assignment.
         var AwsConfig = new AwsConfig(){
-            QueueUrl = configuration["Aws:QueueUrl"],
-            DlqQueueUrl = configuration["Aws:DlqQueueUrl"],
+            QueueName = configuration["Aws:QueueName"],
+            DlqQueueName = configuration["Aws:DlqQueueName"],
             RegionEndpoint = configuration["Aws:RegionEndpoint"],
             ServiceURL = configuration["Aws:ServiceURL"],
             AccessKey = configuration["Aws:AccessKey"],
@@ -41,10 +30,10 @@ public class AppSettingsConfig
 
 public class AwsConfig 
 {
-    internal string RegionEndpoint { get; set; }  = String.Empty;
-    internal string AccessKey { get; set; }  = String.Empty;
-    internal string SecretKey { get; set; }  = String.Empty;
-    internal string ServiceURL { get; set; }  = String.Empty;
-    internal string QueueUrl { get; set; } = String.Empty;
-    internal string DlqQueueUrl { get; set; }  = String.Empty;
+    public string RegionEndpoint { get; set; }  = String.Empty;
+    public string AccessKey { get; set; }  = String.Empty;
+    public string SecretKey { get; set; }  = String.Empty;
+    public string ServiceURL { get; set; }  = String.Empty;
+    public string QueueName { get; set; } = String.Empty;
+    public string DlqQueueName { get; set; }  = String.Empty;
 }

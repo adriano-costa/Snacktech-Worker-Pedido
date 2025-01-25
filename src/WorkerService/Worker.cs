@@ -29,7 +29,7 @@ namespace WorkerService
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var response = await _sqsClient.ReceiveMessageAsync(_config.Aws.QueueUrl);
+                var response = await _sqsClient.ReceiveMessageAsync(_config.Aws.QueueName);
 
                 foreach (var message in response.Messages)
                 {
@@ -51,15 +51,15 @@ namespace WorkerService
                         _logger.LogError(ex, "Error processing message {messageId} with body: {body}", message?.MessageId, message?.Body);
                         
                         if (message != null){
-                            await _sqsClient.SendMessageAsync(_config.Aws.DlqQueueUrl, message.Body);
-                            _logger.LogWarning("Message {messageId} sent to DLQ {queueDlq}", message.MessageId, _config.Aws.DlqQueueUrl);
+                            await _sqsClient.SendMessageAsync(_config.Aws.DlqQueueName, message.Body);
+                            _logger.LogWarning("Message {messageId} sent to DLQ {queueDlq}", message.MessageId, _config.Aws.DlqQueueName);
                         }
                     }
                     finally
                     {
                         if (message != null){
-                            await _sqsClient.DeleteMessageAsync(_config.Aws.QueueUrl, message);
-                            _logger.LogDebug("Message {messageId} deleted from queue {queue}", message.MessageId, _config.Aws.QueueUrl);
+                            await _sqsClient.DeleteMessageAsync(_config.Aws.QueueName, message);
+                            _logger.LogDebug("Message {messageId} deleted from queue {queue}", message.MessageId, _config.Aws.QueueName);
                         }
                     }
                 }
