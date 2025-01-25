@@ -29,7 +29,7 @@ namespace WorkerService
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var response = await _sqsClient.ReceiveMessageAsync(_config.QueueUrl);
+                var response = await _sqsClient.ReceiveMessageAsync(_config.Aws.QueueUrl);
 
                 foreach (var message in response.Messages)
                 {
@@ -48,16 +48,16 @@ namespace WorkerService
                         _logger.LogError(ex, "Error processing message {messageId} with body: {body}", message?.MessageId, message?.Body);
                         
                         if (message != null)
-                            await _sqsClient.SendMessageAsync(_config.DlqQueueUrl, message.Body);
+                            await _sqsClient.SendMessageAsync(_config.Aws.DlqQueueUrl, message.Body);
                     }
                     finally
                     {
                         if (message != null)
-                            await _sqsClient.DeleteMessageAsync(_config.QueueUrl, message);
+                            await _sqsClient.DeleteMessageAsync(_config.Aws.QueueUrl, message);
                     }
                 }
 
-                await Task.Delay(1000);
+                await Task.Delay(5000);
             }
         }
     }

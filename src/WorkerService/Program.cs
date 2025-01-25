@@ -8,6 +8,7 @@ using WorkerService.Handlers;
 using WorkerService.Infrastructure;
 using Amazon.SQS;
 using Amazon;
+using Amazon.Runtime;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -30,8 +31,12 @@ builder.Services.AddSingleton<ISqsClient, SqsClient>();
 // Add AWS SDK Configuration
 builder.Services.AddSingleton<IAmazonSQS>(serviceProvider =>
 {
-    var config = new AmazonSQSConfig { RegionEndpoint = RegionEndpoint.USWest1 }; // Replace with your region
-    return new AmazonSQSClient(config);
+    var configSqs = new AmazonSQSConfig { 
+        RegionEndpoint = RegionEndpoint.GetBySystemName(config.Aws.RegionEndpoint),
+        ServiceURL = config.Aws.ServiceURL,
+        UseHttp = true
+    };
+    return new AmazonSQSClient(config.Aws.AccessKey, config.Aws.SecretKey, configSqs);
 });
 
 
