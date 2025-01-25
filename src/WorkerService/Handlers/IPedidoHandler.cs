@@ -1,8 +1,9 @@
-namespace WorkerService.Handlers;
 
 using WorkerService.DTOs;
 
-public interface IPedidoHandler
-{
-    Task ProcessarPedidoAsync(MensagemPedidoDto mensagem);
+namespace WorkerService.Handlers {
+    public interface IPedidoHandler
+    {
+        Task ProcessarPedidoAsync(MensagemPedidoDto mensagem);
+    }
 }
