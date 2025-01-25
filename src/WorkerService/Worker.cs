@@ -33,30 +33,38 @@ namespace WorkerService
 
                 foreach (var message in response.Messages)
                 {
+                    _logger.LogDebug("Processing message {messageId}", message?.MessageId);
+
                     try
                     {
-                        var mensagemPedidoDto = JsonSerializer.Deserialize<MensagemPedidoDto>(message.Body);
+                        var mensagemPedidoDto = JsonSerializer.Deserialize<MensagemPedidoDto>(message!.Body);
                         if(mensagemPedidoDto == null)
                         {
-                            throw new JsonException("Não foi possivel deserializar a mensagem.");
+                            throw new JsonException("Invalid message body");
                         }
 
                         await _pedidoHandler.ProcessarPedidoAsync(mensagemPedidoDto);
+                        _logger.LogDebug("Message {messageId} processed with body: {body}", message?.MessageId, message?.Body);
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Error processing message {messageId} with body: {body}", message?.MessageId, message?.Body);
                         
-                        if (message != null)
+                        if (message != null){
                             await _sqsClient.SendMessageAsync(_config.Aws.DlqQueueUrl, message.Body);
+                            _logger.LogWarning("Message {messageId} sent to DLQ {queueDlq}", message.MessageId, _config.Aws.DlqQueueUrl);
+                        }
                     }
                     finally
                     {
-                        if (message != null)
+                        if (message != null){
                             await _sqsClient.DeleteMessageAsync(_config.Aws.QueueUrl, message);
+                            _logger.LogDebug("Message {messageId} deleted from queue {queue}", message.MessageId, _config.Aws.QueueUrl);
+                        }
                     }
                 }
 
+                _logger.LogDebug("Waiting for messages...");
                 await Task.Delay(5000);
             }
         }
