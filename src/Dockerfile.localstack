@@ -1,0 +1,7 @@
+# This Dockerfile is used to set execute permissions on the init script
+FROM localstack/localstack:latest
+
+COPY ./localstack-init.sh /etc/localstack/init/ready.d/init-aws.sh
+
+# Set execute permissions on the init script
+RUN chmod 755 /etc/localstack/init/ready.d/init-aws.sh

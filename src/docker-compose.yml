@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  # Create a localstack container with SQS service
+  localstack:
+    container_name: "localstack"
+    image: localstack/localstack
+    restart: always
+    ports:
+      - "127.0.0.1:4566:4566"            # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
+    environment:
+      # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
+      - DEBUG=${DEBUG:-0}
+      - SERVICES=sqs
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    build:
+      # Add a RUN instruction to set execute permissions on the init script
+      context: .
+      dockerfile: Dockerfile.localstack
+    
+
+  # Create a local MS SQL Server instance
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04   
+    container_name: sql-server-local
+    restart: always
+    depends_on:
+      - localstack
+    ports:
+      - "1433:1433"
+    environment:
+      - SA_PASSWORD=YourStrong@Password123
+      - ACCEPT_EULA=Y
+      - MSSQL_ENABLE_REMOTE_ACCESS=1
+
+  # Seed the SQL database after MSSQL is up and running
+  mssql-seeder:
+    image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04
+    container_name: sql-server-seeder
+    depends_on:
+      - mssql
+    volumes:
+      - ./sqlserver-init.sh:/docker-entrypoint-initdb.d/init-db.sh # Copy script into container
+    entrypoint: ["/bin/bash", "/docker-entrypoint-initdb.d/init-db.sh"] # Set the entrypoint
