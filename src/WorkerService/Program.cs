@@ -4,12 +4,19 @@ using WorkerService.Handlers;
 using WorkerService.Infrastructure;
 using Amazon.SQS;
 using Amazon;
+using WorkerService.Data;
+using Microsoft.EntityFrameworkCore;
 
 
 var builder = Host.CreateApplicationBuilder(args);
 
 // Load configuration
 var config = AppSettingsConfig.LoadConfiguration(builder.Configuration);
+
+// Configure Entity Framework Core with SQL Server (or another database provider)
+builder.Services.AddDbContext<PedidoContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DatabaseConnection")));
+
 
 // Register configuration as a service
 builder.Services.AddSingleton(config);

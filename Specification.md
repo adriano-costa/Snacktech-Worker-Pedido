@@ -34,6 +34,8 @@
          }
 
     Reject the update and send the message to DLQ if the DataModificacao of the message was before UltimaAtualizacao of the current value in the table.
+    Reject the update and send the message to DLQ if the PedidoID of the message does not match with any Id in the database.
+    
     2.3 Dead Letter Queue Handling
     Upon unprocessable messages, the worker should move them to a designated DLQ.
     DLQ messages include metadata like the original queue name, timestamp, and error details.
