@@ -1,4 +1,6 @@
-namespace WorkerService.Domain;
+using WorkerService.Enums;
+
+namespace WorkerService.Data.Entities;
 
 public class Pedido
 {
@@ -6,12 +8,4 @@ public class Pedido
     public DateTime DataCriacao { get; set; }
     public DateTime UltimaAtualizacao { get; set; }
     public StatusPedido Status { get; set; }
-}
-
-public enum StatusPedido
-{
-    Pendente,
-    EmProcessamento,
-    Concluido,
-    Cancelado
 }

@@ -10,25 +10,30 @@ namespace WorkerService
     {
         private readonly ILogger<Worker> _logger;
         private readonly ISqsClient _sqsClient;
-        private readonly IPedidoHandler _pedidoHandler;
         private readonly AppSettingsConfig _config;
+        private readonly IServiceProvider _serviceProvider;
 
         public Worker(
             ILogger<Worker> logger,
             ISqsClient sqsClient,
-            IPedidoHandler pedidoHandler,
-            AppSettingsConfig config)
+            AppSettingsConfig config,
+            IServiceProvider serviceProvider)
         {
             _logger = logger;
             _sqsClient = sqsClient;
-            _pedidoHandler = pedidoHandler;
             _config = config;
+            _serviceProvider = serviceProvider;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            using var scope = _serviceProvider.CreateScope();
+            var services = scope.ServiceProvider;
+            var handler = services.GetService<PedidoHandler>();
+
             while (!stoppingToken.IsCancellationRequested)
             {
+                
                 var response = await _sqsClient.ReceiveMessageAsync(_config.Aws.QueueName);
 
                 foreach (var message in response.Messages)
@@ -43,7 +48,7 @@ namespace WorkerService
                             throw new JsonException("Invalid message body");
                         }
 
-                        await _pedidoHandler.ProcessarPedidoAsync(mensagemPedidoDto);
+                        await handler!.ProcessarPedidoAsync(mensagemPedidoDto);
                         _logger.LogDebug("Message {messageId} processed with body: {body}", message?.MessageId, message?.Body);
                     }
                     catch (Exception ex)
@@ -67,6 +72,8 @@ namespace WorkerService
                 _logger.LogDebug("Waiting for messages...");
                 await Task.Delay(5000);
             }
+
+            scope.Dispose();
         }
     }
 }

@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using WorkerService.Domain;
+using WorkerService.Data.Entities;
 
 namespace WorkerService.Data
 {
@@ -12,6 +12,6 @@ namespace WorkerService.Data
         }
 
         // Define a DbSet for the Pedido entity
-        public DbSet<Pedido> Pedidos { get; set; }
+        public virtual DbSet<Pedido> Pedidos { get; set; }
     }
 }

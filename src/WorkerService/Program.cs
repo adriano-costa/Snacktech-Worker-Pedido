@@ -6,6 +6,7 @@ using Amazon.SQS;
 using Amazon;
 using WorkerService.Data;
 using Microsoft.EntityFrameworkCore;
+using WorkerService.Data.Repository;
 
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -20,7 +21,8 @@ builder.Services.AddDbContext<PedidoContext>(options =>
 
 // Register configuration as a service
 builder.Services.AddSingleton(config);
-builder.Services.AddSingleton<IPedidoHandler, PedidoHandler>();
+builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
+builder.Services.AddScoped<IPedidoHandler, PedidoHandler>();
 builder.Services.AddSingleton<ISqsClient, SqsClient>();
 
 // Add AWS SDK Configuration

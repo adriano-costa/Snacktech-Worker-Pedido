@@ -1,6 +1,7 @@
+using WorkerService.Data.Entities;
 using WorkerService.Data.Repository;
-using WorkerService.Domain;
 using WorkerService.DTOs;
+using WorkerService.Enums;
 
 namespace WorkerService.Handlers {
     public class PedidoHandler : IPedidoHandler
@@ -17,7 +18,7 @@ namespace WorkerService.Handlers {
             try
             {
                 // Fetch the current state of the pedido from the database
-                var pedido = await _pedidoRepository.GetByIdAsync(mensagem.PedidoId);
+                Pedido pedido = await _pedidoRepository.GetByIdAsync(mensagem.PedidoId);
 
                 if (pedido == null)
                 {
