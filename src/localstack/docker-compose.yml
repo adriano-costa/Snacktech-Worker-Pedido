@@ -38,6 +38,8 @@ services:
       - SA_PASSWORD=YourStrong@Password123
       - ACCEPT_EULA=Y
       - MSSQL_ENABLE_REMOTE_ACCESS=1
+    volumes:
+      - sqlserver-data:/var/opt/mssql
 
   # Seed the SQL database after MSSQL is up and running
   mssql-seeder:
@@ -48,3 +50,7 @@ services:
     volumes:
       - ./sqlserver-init.sh:/docker-entrypoint-initdb.d/init-db.sh # Copy script into container
     entrypoint: ["/bin/bash", "/docker-entrypoint-initdb.d/init-db.sh"] # Set the entrypoint
+
+volumes:
+  sqlserver-data:
+    driver: local

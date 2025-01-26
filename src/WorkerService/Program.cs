@@ -14,6 +14,7 @@ var builder = Host.CreateApplicationBuilder(args);
 // Load configuration
 var config = AppSettingsConfig.LoadConfiguration(builder.Configuration);
 
+Console.WriteLine("ConnectionString: " + builder.Configuration.GetConnectionString("DatabaseConnection"));
 // Configure Entity Framework Core with SQL Server (or another database provider)
 builder.Services.AddDbContext<PedidoContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DatabaseConnection")));

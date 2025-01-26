@@ -35,3 +35,4 @@ msbuild.wrn
 
 # localstack
 src/volume
+src/localstack/volume

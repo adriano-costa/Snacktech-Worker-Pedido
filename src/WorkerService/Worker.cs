@@ -29,7 +29,7 @@ namespace WorkerService
         {
             using var scope = _serviceProvider.CreateScope();
             var services = scope.ServiceProvider;
-            var handler = services.GetService<PedidoHandler>();
+            var handler = services.GetService<IPedidoHandler>();
 
             while (!stoppingToken.IsCancellationRequested)
             {
