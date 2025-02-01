@@ -28,22 +28,21 @@ jobs:
 
     - name: Test
       run: dotnet test ./src/WorkerService.Tests/WorkerService.Tests.csproj --configuration Release --collect:"XPlat Code Coverage" --logger:"trx;LogFileName=../TestResults.trx" 
-    - name: ReportGenerator
-      uses: danielpalme/ReportGenerator-GitHub-Action@5.4.3
-      with:
-        reports: './**/coverage.cobertura.xml' # REQUIRED # The coverage reports that should be parsed (separated by semicolon). Globbing is supported.
-        targetdir: './coveragereport' # REQUIRED # The directory where the generated report should be saved.
-        reporttypes: 'HtmlInline;Cobertura' # The output formats and scope (separated by semicolon) Values: Badges, Clover, Cobertura, OpenCover, CsvSummary, Html, Html_Dark, Html_Light, Html_BlueRed, HtmlChart, HtmlInline, HtmlInline_AzurePipelines, HtmlInline_AzurePipelines_Dark, HtmlInline_AzurePipelines_Light, HtmlSummary, Html_BlueRed_Summary, JsonSummary, CodeClimate, Latex, LatexSummary, lcov, MarkdownSummary, MarkdownAssembliesSummary, MarkdownSummaryGithub, MarkdownDeltaSummary, MHtml, SvgChart, SonarQube, TeamCitySummary, TextSummary, TextDeltaSummary, Xml, XmlSummary
-    
-    - name: Extract Coverage Percentage
-      id: coverage
-      run: |
-        coverage_percentage=$(jq -r '.coverage.line-rate * 100' ./coveragereport/Cobertura.xml | cut -d '.' -f 1)
-        echo "::set-output name=percentage::$coverage_percentage"
       
-    - name: Display Coverage Percentage
+    - name: Extract Code Coverage
       run: |
-        echo "Coverage Percentage: ${{ steps.coverage.outputs.percentage }}%"
+        # Install reportgenerator
+        dotnet tool install --global reportgenerator
+    
+        # Generate a HTML report from the TRX file.  Adjust paths as needed.
+        reportgenerator -reports:../TestResults.trx -targetdir:./CoverageReport -reporttypes:Html
+    
+        # Extract coverage percentage from the HTML report. This is a bit fragile as HTML structure can change.
+        #  A more robust method would use a proper XML report if reportgenerator supports it.
+        coverage_percentage=$(grep -oP '(?<=Coverage: )[0-9.]+(?=%' ./CoverageReport/index.htm)
+    
+        # Print the coverage percentage to the console
+        echo "Code Coverage: $coverage_percentage%"
       
     # - name: Upload coverage percentage as artifact for badge
     #   uses: actions/upload-artifact@v3
