@@ -30,9 +30,6 @@ jobs:
     - name: Install ReportGenerator
       run: dotnet tool install -g dotnet-reportgenerator-globaltool
 
-    - name: List Files (Debugging)
-      run: find . -name "coverage.cobertura.xml"
-
     - name: Generate Coverage Report
       run: reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:./CoverageReport -reporttypes:Html
     
@@ -44,8 +41,8 @@ jobs:
           echo "Coverage file not found!"
           exit 1
         fi
-        echo "Coverage file found: $coverage_file"
-        coverage_percentage=$(grep -oP 'line-rate="\K[0-9.]+' "$coverage_file")
+        # Use grep -m 1 to stop after the first match
+        coverage_percentage=$(grep -oP 'line-rate="\K[0-9.]+' -m 1 "$coverage_file")
         echo "Coverage Percentage: $coverage_percentage%"
         echo "coverage_percentage=$coverage_percentage" >> $GITHUB_OUTPUT
 
