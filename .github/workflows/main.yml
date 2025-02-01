@@ -25,36 +25,21 @@ jobs:
       run: dotnet build ./src/WorkerService/WorkerService.csproj --configuration Release
 
     - name: Test
-      run: dotnet test ./src/WorkerService.Tests/WorkerService.Tests.csproj \
-            --configuration Release \
-            --collect:"XPlat Code Coverage" \
-            --results-directory "./TestResults" \
-            --DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+      run: dotnet test ./src/WorkerService.Tests/WorkerService.Tests.csproj --configuration Release --collect:"XPlat Code Coverage" --logger:"trx;LogFileName=../TestResults.trx"
 
-    - name: Extract and Display Code Coverage
+    - name: Install ReportGenerator
+      run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
+    - name: Generate Coverage Report
+      run: reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:./CoverageReport -reporttypes:Html
+
+    - name: Extract Coverage Percentage
+      id: coverage
       run: |
-        # Install dependencies
-        sudo apt-get update
-        sudo apt-get install -y jq bc
+        coverage_file=$(find ./**/coverage.cobertura.xml -type f -print -quit)
+        coverage_percentage=$(grep -oP 'line-rate="\K[0-9.]+' $coverage_file)
+        echo "Coverage Percentage: $coverage_percentage%"
+        echo "::set-output name=coverage_percentage::$coverage_percentage"
 
-        # Find the coverage report (assuming single test run)
-        COVERAGE_FILE=$(find ./TestResults -name 'coverage.cobertura.xml' | head -n 1)
-
-        # Check if coverage file exists
-        if [ -f "$COVERAGE_FILE" ]; then
-          # Extract coverage percentage from the XML report
-          coverage_percentage=$(xmllint --xpath "string(/coverage/@line-rate)" "$COVERAGE_FILE")
-
-          # Convert the decimal coverage to percentage
-          coverage_percentage=$(echo "$coverage_percentage * 100" | bc -l)
-
-          # Round the coverage to two decimal places
-          coverage_percentage=$(printf "%.2f" "$coverage_percentage")
-
-          # Print the coverage percentage to the console
-          echo "Code Coverage: $coverage_percentage%"
-
-        else
-          echo "Coverage file not found."
-          exit 1
-        fi
+    - name: Print Coverage Percentage
+      run: echo "Coverage Percentage: ${{ steps.coverage.outputs.coverage_percentage }}%"
