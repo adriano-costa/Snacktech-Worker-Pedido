@@ -29,7 +29,7 @@ jobs:
             --configuration Release \
             --collect:"XPlat Code Coverage" \
             --results-directory "./TestResults" \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+            --DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
 
     - name: Extract and Display Code Coverage
       run: |
