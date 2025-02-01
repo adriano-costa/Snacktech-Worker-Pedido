@@ -33,16 +33,28 @@ jobs:
       run: |
         # Install reportgenerator
         dotnet tool install --global reportgenerator
-    
-        # Generate a HTML report from the TRX file.  Adjust paths as needed.
-        reportgenerator -reports:../TestResults.trx -targetdir:./CoverageReport -reporttypes:Html
-    
-        # Extract coverage percentage from the HTML report. This is a bit fragile as HTML structure can change.
-        #  A more robust method would use a proper XML report if reportgenerator supports it.
-        coverage_percentage=$(grep -oP '(?<=Coverage: )[0-9.]+(?=%' ./CoverageReport/index.htm)
-    
+
+        # Generate an XML coverage report
+        reportgenerator -reports:../TestResults.trx -targetdir:./CoverageReport -reporttypes:Cobertura
+
+        # Ensure xmllint and bc are installed
+        sudo apt-get update
+        sudo apt-get install -y libxml2-utils bc
+
+        # Extract coverage percentage from the XML report
+        coverage_percentage=$(xmllint --xpath "string(/coverage/@line-rate)" ./CoverageReport/Cobertura.xml)
+
+        # Convert the decimal coverage to percentage
+        coverage_percentage=$(echo "$coverage_percentage * 100" | bc -l)
+
+        # Round the coverage to two decimal places
+        coverage_percentage=$(printf "%.2f" "$coverage_percentage")
+
         # Print the coverage percentage to the console
         echo "Code Coverage: $coverage_percentage%"
+
+        # Set the coverage percentage as an output variable
+        echo "coverage_percentage=$coverage_percentage" >>
       
     # - name: Upload coverage percentage as artifact for badge
     #   uses: actions/upload-artifact@v3
