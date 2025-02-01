@@ -1,6 +1,3 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
 name: .NET
 
 on:
@@ -11,53 +8,53 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    
+
     - name: Restore dependencies
       run: dotnet restore ./src/WorkerServiceSolution.sln
+
     - name: Build
       run: dotnet build ./src/WorkerService/WorkerService.csproj --configuration Release
 
     - name: Test
-      run: dotnet test ./src/WorkerService.Tests/WorkerService.Tests.csproj --configuration Release --collect:"XPlat Code Coverage" --logger:"trx;LogFileName=../TestResults.trx" 
-      
-    - name: Extract Code Coverage
+      run: dotnet test ./src/WorkerService.Tests/WorkerService.Tests.csproj \
+            --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory "./TestResults" \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+
+    - name: Extract and Display Code Coverage
       run: |
-        # Install reportgenerator
-        dotnet tool install --global reportgenerator
-
-        # Generate an XML coverage report
-        reportgenerator -reports:../TestResults.trx -targetdir:./CoverageReport -reporttypes:Cobertura
-
-        # Ensure xmllint and bc are installed
+        # Install dependencies
         sudo apt-get update
-        sudo apt-get install -y libxml2-utils bc
+        sudo apt-get install -y jq bc
 
-        # Extract coverage percentage from the XML report
-        coverage_percentage=$(xmllint --xpath "string(/coverage/@line-rate)" ./CoverageReport/Cobertura.xml)
+        # Find the coverage report (assuming single test run)
+        COVERAGE_FILE=$(find ./TestResults -name 'coverage.cobertura.xml' | head -n 1)
 
-        # Convert the decimal coverage to percentage
-        coverage_percentage=$(echo "$coverage_percentage * 100" | bc -l)
+        # Check if coverage file exists
+        if [ -f "$COVERAGE_FILE" ]; then
+          # Extract coverage percentage from the XML report
+          coverage_percentage=$(xmllint --xpath "string(/coverage/@line-rate)" "$COVERAGE_FILE")
 
-        # Round the coverage to two decimal places
-        coverage_percentage=$(printf "%.2f" "$coverage_percentage")
+          # Convert the decimal coverage to percentage
+          coverage_percentage=$(echo "$coverage_percentage * 100" | bc -l)
 
-        # Print the coverage percentage to the console
-        echo "Code Coverage: $coverage_percentage%"
+          # Round the coverage to two decimal places
+          coverage_percentage=$(printf "%.2f" "$coverage_percentage")
 
-        # Set the coverage percentage as an output variable
-        echo "coverage_percentage=$coverage_percentage" >>
-      
-    # - name: Upload coverage percentage as artifact for badge
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: coverage-percentage
-    #     path: ${{ steps.coverage.outputs.percentage }}
+          # Print the coverage percentage to the console
+          echo "Code Coverage: $coverage_percentage%"
+
+        else
+          echo "Coverage file not found."
+          exit 1
+        fi
