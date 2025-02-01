@@ -38,3 +38,4 @@ src/volume
 src/localstack/volume
 src/WorkerService.Tests/TestResults.trx
 **/TestResults/*
+**/CoverageReport/*
