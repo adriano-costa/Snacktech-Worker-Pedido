@@ -42,4 +42,5 @@ jobs:
         echo "::set-output name=coverage_percentage::$coverage_percentage"
 
     - name: Print Coverage Percentage
-      run: echo "Coverage Percentage: ${{ steps.coverage.outputs.coverage_percentage }}%"
+      run: |
+        echo "Coverage Percentage: ${{ steps.coverage.outputs.coverage_percentage }}%"
