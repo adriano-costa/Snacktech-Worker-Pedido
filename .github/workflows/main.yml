@@ -1,4 +1,4 @@
-name: .NET
+name: Build and Deploy
 
 on:
   push:
@@ -18,14 +18,22 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
+    # Define a variable for the solution path
+    - name: Set Solution Path
+      id: set_solution_path
+      run: |
+        # Informar aqui o caminho para o arquivo da solution
+        SOLUTION_PATH="./src/WorkerServiceSolution.sln"
+        echo "SOLUTION_PATH=$SOLUTION_PATH" >> $GITHUB_ENV
+
     - name: Restore dependencies
-      run: dotnet restore ./src/WorkerServiceSolution.sln
+      run: dotnet restore $SOLUTION_PATH
 
     - name: Build
-      run: dotnet build ./src/WorkerService/WorkerService.csproj --configuration Release
+      run: dotnet build $SOLUTION_PATH --configuration Release
 
     - name: Test
-      run: dotnet test ./src/WorkerService.Tests/WorkerService.Tests.csproj --configuration Release --collect:"XPlat Code Coverage" --logger:"trx;LogFileName=../TestResults.trx"
+      run: dotnet test $SOLUTION_PATH --configuration Release --collect:"XPlat Code Coverage" --logger:"trx;LogFileName=../TestResults.trx"
 
     - name: Install ReportGenerator
       run: dotnet tool install -g dotnet-reportgenerator-globaltool
@@ -55,18 +63,13 @@ jobs:
           exit 1
         fi
         echo "Raw Coverage Percentage: $coverage_percentage"
-
-        # Convert the decimal coverage to percentage
         coverage_percentage=$(echo "$coverage_percentage * 100" | bc -l)
-
-        # Round to two decimal places
         coverage_percentage=$(printf "%.2f" "$coverage_percentage")
-
         echo "Coverage Percentage: $coverage_percentage%"
-
-        # Set the output variable
         echo "coverage_percentage=$coverage_percentage" >> $GITHUB_OUTPUT
 
     - name: Print Coverage Percentage
       run: |
         echo "Coverage Percentage: ${{ steps.coverage.outputs.coverage_percentage }}%"
+
+  ## Adicionar os passos de deploy aqui
