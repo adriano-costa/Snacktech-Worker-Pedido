@@ -22,12 +22,12 @@ jobs:
         dotnet-version: 8.0.x
     
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore ./src/WorkerServiceSolution.sln
     - name: Build
-      run: dotnet build --configuration Release
+      run: dotnet build ./src/WorkerService/WorkerService.csproj --configuration Release
 
     - name: Test
-      run: dotnet test --configuration Release --collect:"XPlat Code Coverage" --logger:"trx;LogFileName=../TestResults.trx"
+      run: dotnet test ./src/WorkerService.Tests/WorkerService.Tests.csproj --configuration Release --collect:"XPlat Code Coverage" --logger:"trx;LogFileName=../TestResults.trx"
     - name: ReportGenerator
       uses: danielpalme/ReportGenerator-GitHub-Action@5.4.3
       with:
